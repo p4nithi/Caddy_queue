@@ -1,0 +1,112 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f9;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.main-section, .logs-section {
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.logs-section {
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.status-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.green {
+    background-color: green;
+}
+
+.red {
+    background-color: red;
+}
+
+.blue {
+    background-color: blue;
+}
+
+.white {
+    background-color: #ddd;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    text-align: center;
+    border: 2px solid;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.box.green {
+    background-color: green;
+    border-color: green;
+    color: white;
+}
+
+.box.red {
+    background-color: red;
+    border-color: red;
+    color: white;
+}
+
+.box.blue {
+    background-color: blue;
+    border-color: blue;
+    color: white;
+}
+
+.box.white {
+    background-color: #ddd;
+    border-color: #ddd;
+    color: black;
+}
+
+/* Animation for highlight */
+@keyframes blink {
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.highlight {
+    animation: blink 0.5s step-end infinite;
+}

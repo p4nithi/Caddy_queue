@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h2>Status Tracker</h2>
+
+    <div class="container">
+        <!-- Main Section -->
+        <div class="main-section">
+            <!-- Status Summary -->
+            <h3>Status Summary</h3>
+            <div class="status-item">
+                <div class="status-color green"></div>
+                <span>ว่าง: {{ counts.waiting }}</span>
+            </div>
+            <div class="status-item">
+                <div class="status-color red"></div>
+                <span>ออกรอบแรก: {{ counts.status_1 }}</span>
+            </div>
+            <div class="status-item">
+                <div class="status-color blue"></div>
+                <span>ออกรอบสอง: {{ counts.status_2 }}</span>
+            </div>
+            <div class="status-item">
+                <div class="status-color white"></div>
+                <span>ลา: {{ counts.on_leave }}</span>
+            </div>
+
+            <!-- Status Tracker -->
+            <h3>Status Tracker</h3>
+            <div class="grid">
+                {% for i in range(1, 152) %}
+                    <div class="box {% if i in status_1 %}red{% elif i in status_2 %}blue{% elif i in on_leave %}white{% else %}green{% endif %}"
+                         ondblclick="changeStatus({{ i }})"
+                         onmousedown="startLongPress(event, {{ i }})"
+                         onmouseup="cancelLongPress()"
+                         onmouseleave="cancelLongPress()"
+                         id="box-{{ i }}">
+                        {{ i }}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Revert Status -->
+            <h3>Revert Status</h3>
+            <p>Enter the number you want to revert the status for:</p>
+            <input type="number" id="revertNumber" placeholder="Enter number and press Enter" onkeydown="handleRevert(event)" />
+            <p id="revertMessage" style="color: red; margin-top: 10px;"></p>
+        </div>
+
+        <!-- Logs Section -->
+        <div class="logs-section">
+            <h3>Logs</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Number</th>
+                        <th>Old Status</th>
+                        <th>New Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                        <tr>
+                            <td>{{ log[0] }}</td>
+                            <td>{{ log[1] }}</td>
+                            <td>{{ log[2] }}</td>
+                            <td>{{ log[3] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let longPressTimer = null;
+        let pressDuration = 0;
+        let lastChangedElement = null; // Track the last element that changed
+
+        // ฟังก์ชันสำหรับกดค้าง (Long Press)
+        function startLongPress(event, number) {
+            pressDuration = 0;
+            longPressTimer = setInterval(() => {
+                pressDuration += 100;
+                if (pressDuration >= 1000) { // กดค้างมากกว่า 1 วินาที
+                    clearInterval(longPressTimer);
+                    forceLeaveStatus(number);
+                }
+            }, 100);
+        }
+
+        function cancelLongPress() {
+            clearInterval(longPressTimer);
+            pressDuration = 0;
+        }
+
+        // เปลี่ยนสถานะเป็น "ลา"
+        function forceLeaveStatus(number) {
+            fetch("/move", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ number: number, forceLeave: true })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        }
+
+        // กดสองครั้งเพื่อเปลี่ยนสถานะตามลำดับ
+        function changeStatus(number) {
+            fetch("/move", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ number: number })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // กระพริบสถานะล่าสุด
+                    highlightChange(`box-${number}`);
+                    location.reload();
+                }
+            });
+        }
+
+        // ฟังก์ชันกระพริบสถานะล่าสุด
+        function highlightChange(elementId) {
+            const newElement = document.getElementById(elementId);
+
+            // ลบ class highlight ออกจากสถานะเดิม
+            if (lastChangedElement) {
+                lastChangedElement.classList.remove("highlight");
+            }
+
+            // เพิ่ม class highlight ไปยังสถานะใหม่
+            if (newElement) {
+                newElement.classList.add("highlight");
+                lastChangedElement = newElement; // อัปเดตสถานะล่าสุด
+            }
+        }
+
+        // ย้อนกลับสถานะ
+        function handleRevert(event) {
+            if (event.key === "Enter") {
+                const number = document.getElementById("revertNumber").value;
+                const messageElement = document.getElementById("revertMessage");
+
+                if (!number) {
+                    messageElement.textContent = "Please enter a valid number.";
+                    return;
+                }
+
+                fetch("/revert", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ number: parseInt(number) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        messageElement.style.color = "green";
+                        messageElement.textContent = `Status of number ${number} has been reverted to ${data.new_status}.`;
+                        location.reload();
+                    } else {
+                        messageElement.style.color = "red";
+                        messageElement.textContent = data.message || "Failed to revert status.";
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
