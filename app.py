@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 import csv
+import os
 import datetime
+
 
 app = Flask(__name__)
 
@@ -25,6 +27,7 @@ def save_log_to_csv(log_entry):
         writer.writerow(log_entry)
 
 @app.route("/")
+
 def index():
     # Count statuses
     counts = {
@@ -42,7 +45,12 @@ def index():
         logs=logs,
         counts=counts,
     )
+def home():
+    return render_template("index.html")  # ตรวจสอบว่า index.html อยู่ในโฟลเดอร์ templates
 
+# Handler สำหรับ Vercel Serverless
+def handler(event, context):
+    return app(event, context)
 @app.route("/move", methods=["POST"])
 def move():
     global waiting_list, status_1_tee, status_2_tee, on_leave, logs, last_status
@@ -129,4 +137,5 @@ def revert_status():
         return jsonify(success=False, message="No previous status to revert to.")
 
 if __name__ == "__main__":
-    app.run()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
