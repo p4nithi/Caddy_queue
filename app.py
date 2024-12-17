@@ -129,4 +129,4 @@ def revert_status():
         return jsonify(success=False, message="No previous status to revert to.")
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8081)
+    app.run()
