@@ -84,7 +84,7 @@ def move():
             old_status, new_status = "2 Tee", "Waiting"
 
     # Log the action
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     log_entry = [timestamp, number, old_status, new_status]
     logs.append(log_entry)
     save_log_to_csv(log_entry)
@@ -127,7 +127,7 @@ def revert_status():
             on_leave.append(number)
 
         # Log the action
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         log_entry = [timestamp, number, current_status, restored_status]
         logs.append(log_entry)
         save_log_to_csv(log_entry)
@@ -137,5 +137,4 @@ def revert_status():
         return jsonify(success=False, message="No previous status to revert to.")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8010))
-    app.run(host="0.0.0.0", port=port)
+    app.run()
